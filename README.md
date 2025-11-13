@@ -8,11 +8,28 @@ This project provides comprehensive analysis of flight data for 2024, focusing o
 
 ```
 flight_dataset/
+├── .git/                              # Git repository
+├── .gitignore                         # Git ignore file
+├── .python-version                    # Python version specification
+├── .venv/                             # Virtual environment
+├── __pycache__/                       # Python cache files
 ├── data/
 │   └── flight_data_2024.csv          # Raw flight dataset
+├── outputs/                           # Generated visualization outputs
+│   ├── air_time_distribution.png
+│   ├── cancellation_rate_month.png
+│   ├── delay_distribution_boxplot.png
+│   ├── distance_vs_airtime.png
+│   ├── flights_by_dow.png
+│   ├── flights_per_month.png
+│   ├── monthly_delays.png
+│   ├── taxi_out_by_airport.png
+│   └── weather_delay_by_airport.png
 ├── data_preprocess.py                 # Data preprocessing and analysis functions
+├── descriptive_analysis.ipynb         # Jupyter notebook for interactive analysis
 ├── visualization.py                   # Visualization pipeline
-├── pyproject.toml                     # Project dependencies
+├── pyproject.toml                     # Project dependencies and configuration
+├── uv.lock                            # UV package manager lock file
 └── README.md                          # Project documentation
 ```
 
@@ -180,30 +197,66 @@ numpy = "^1.24.0"
 ```
 
 ### Installation
-```bash
-# Using pip
-pip install pandas matplotlib seaborn numpy
 
-# Or using the project file
-pip install -r requirements.txt
+#### Option 1: Using UV (Recommended)
+```bash
+# Install UV package manager if not installed
+pip install uv
+
+# Install project dependencies
+uv install
+```
+
+#### Option 2: Using pip with virtual environment
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate  # On Windows
+source .venv/bin/activate  # On macOS/Linux
+
+# Install dependencies
+pip install pandas matplotlib seaborn numpy
+```
+
+#### Option 3: Using pyproject.toml
+```bash
+pip install -e .
 ```
 
 ## Getting Started
 
 1. **Clone or download** the project files
-2. **Install dependencies** using pip or conda
-3. **Place your dataset** in the `data/` folder as `flight_data_2024.csv`
+2. **Install dependencies** using UV, pip, or virtual environment (see Installation section)
+3. **Ensure your dataset** is in the `data/` folder as `flight_data_2024.csv`
 4. **Run the analysis**:
    ```bash
-   python data_preprocess.py    # For preprocessing and analysis
-   python visualization.py      # For visualizations
+   # For preprocessing and analysis
+   python data_preprocess.py    
+   
+   # For visualizations (outputs saved to outputs/ folder)
+   python visualization.py      
+   
+   # For interactive analysis
+   jupyter notebook descriptive_analysis.ipynb
    ```
+
+### Output Files
+
+Generated visualizations are automatically saved to the `outputs/` directory:
+- Flight distribution charts (`flights_by_dow.png`, `flights_per_month.png`)
+- Delay analysis (`delay_distribution_boxplot.png`, `monthly_delays.png`, `weather_delay_by_airport.png`)
+- Performance metrics (`air_time_distribution.png`, `distance_vs_airtime.png`, `taxi_out_by_airport.png`)
+- Cancellation analysis (`cancellation_rate_month.png`)
 
 ## File Dependencies
 
 - **`data_preprocess.py`**: Core analysis functions (can be imported)
+- **`descriptive_analysis.ipynb`**: Interactive Jupyter notebook for exploratory analysis
 - **`visualization.py`**: Imports from `data_preprocess.py` for complete pipeline
 - **`data/flight_data_2024.csv`**: Required dataset file
+- **`outputs/`**: Directory containing generated visualization files
+- **`.venv/`**: Virtual environment for isolated dependencies
+- **`uv.lock`**: UV package manager lock file for reproducible builds
 
 ## Contributing
 
