@@ -1,7 +1,52 @@
 import pandas as pd
+import os
+import glob
+from pathlib import Path
 
 def load_flight_data(file_path='data/flight_data_2024.csv'):
-    df = pd.read_csv(file_path)
+    """
+    Load flight dataset from CSV file with Kaggle environment auto-detection.
+    
+    Args:
+        file_path (str): Path to the CSV file
+    
+    Returns:
+        pd.DataFrame: Loaded and processed dataset
+    """
+    # Auto-detect data file (Kaggle mount or local)
+    data_file = None
+    if os.path.exists('/kaggle/input'):
+        matches = glob.glob('/kaggle/input/**/flight_data_2024.csv', recursive=True)
+        if matches:
+            data_file = matches[0]
+    if data_file is None:
+        local_path = Path(file_path)
+        if local_path.exists():
+            data_file = str(local_path)
+        else:
+            # Fallback to original parameter
+            data_file = file_path
+    
+    print(f'Using data file: {data_file}')
+    df = pd.read_csv(data_file)
+    
+    # Enhanced data processing
+    # Convert date column
+    if 'fl_date' in df.columns:
+        df['fl_date'] = pd.to_datetime(df['fl_date'], errors='coerce')
+        
+        # Ensure month column exists
+        if 'month' not in df.columns:
+            df['month'] = df['fl_date'].dt.month
+        
+        # Ensure day_of_week column exists
+        if 'day_of_week' not in df.columns:
+            df['day_of_week'] = df['fl_date'].dt.dayofweek + 1
+    
+    # Create readable day names
+    dow_map = {1:'Mon', 2:'Tue', 3:'Wed', 4:'Thu', 5:'Fri', 6:'Sat', 7:'Sun'}
+    df['day_name'] = df['day_of_week'].map(dow_map).fillna('Unknown')
+    
     return df
 
 def display_dataset_info(df):
@@ -19,8 +64,30 @@ def check_missing_values(df):
     return missing_values
 
 def fill_missing_values(df):
+    """
+    Fill missing values with mean and median strategies with enhanced error handling.
+    
+    Args:
+        df (pd.DataFrame): Dataset with missing values
+    
+    Returns:
+        pd.DataFrame: Dataset with filled missing values
+    """
     # Create a copy to avoid modifying the original
     df_filled = df.copy()
+    
+    # Drop rows missing essential data (only columns that exist)
+    essential_cols = ['origin', 'dep_time', 'distance', 'air_time']
+    existing_essentials = [c for c in essential_cols if c in df_filled.columns]
+    if existing_essentials:
+        df_filled = df_filled.dropna(subset=existing_essentials)
+    
+    # Fill NaN delay values with 0 (no delay) — defensive check
+    for col in ['weather_delay', 'late_aircraft_delay']:
+        if col in df_filled.columns:
+            df_filled[col] = df_filled[col].fillna(0)
+        else:
+            df_filled[col] = 0
     
     # Fill missing values with appropriate strategies
     fill_values = {}
@@ -159,8 +226,42 @@ def analyze_monthly_delays(df):
     
     return monthly_delay
 
+def display_basic_stats(df):
+    """
+    Display basic statistics about the flight dataset.
+    
+    Args:
+        df (pd.DataFrame): Flight dataset
+    
+    Returns:
+        dict: Dictionary containing basic statistics
+    """
+    stats = {
+        'total_flights': len(df),
+        'cancelled_flights': df['cancelled'].sum() if 'cancelled' in df.columns else 0,
+        'average_distance': round(df['distance'].mean(), 2) if 'distance' in df.columns else 0
+    }
+    
+    print(f"Total flights: {stats['total_flights']}")
+    print(f"Cancelled flights: {stats['cancelled_flights']}")
+    print(f"Average distance: {stats['average_distance']} miles")
+    
+    return stats
+
 def perform_complete_analysis(df):
+    """
+    Perform complete descriptive analysis of flight dataset.
+    
+    Args:
+        df (pd.DataFrame): Flight dataset
+    
+    Returns:
+        dict: Dictionary containing all analysis results
+    """
     results = {}
+    
+    # Display basic statistics first
+    results['basic_stats'] = display_basic_stats(df)
     
     results['time_analysis'] = analyze_flights_by_time(df)
     results['airport_analysis'] = analyze_flights_by_airport(df)

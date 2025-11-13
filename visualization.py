@@ -1,16 +1,34 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
+import warnings
+from pathlib import Path
 
 from data_preprocess import perform_complete_analysis, preprocess_flight_data
 
+# Set visualization style
+sns.set(style="whitegrid", palette="pastel")
+plt.rcParams['figure.figsize'] = (10, 6)
+
+# Create outputs folder for saved plots
+Path('outputs').mkdir(parents=True, exist_ok=True)
+
+# Silence warnings in visualization output
+warnings.filterwarnings('ignore')
+
 # Visualization functions
 def visualize_flights_by_time(time_analysis):
-    """Visualize flights by day of week and month"""
+    """Visualize flights by day of week and month with enhanced styling"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
     
-    # Day of week plot
-    sns.barplot(x=time_analysis['flights_per_dow'].index, 
-                y=time_analysis['flights_per_dow'].values, 
+    # Day of week plot with proper ordering
+    order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    flights_per_dow = time_analysis['flights_per_dow']
+    if hasattr(flights_per_dow.index[0], 'startswith') and any(day in str(flights_per_dow.index[0]) for day in order):
+        # Handle day names if they exist
+        flights_per_dow = flights_per_dow.reindex(order, fill_value=0)
+    
+    sns.barplot(x=flights_per_dow.index, 
+                y=flights_per_dow.values, 
                 palette='viridis', ax=ax1)
     ax1.set_title("Flights by Day of Week")
     ax1.set_xlabel("Day of Week")
@@ -20,12 +38,13 @@ def visualize_flights_by_time(time_analysis):
     # Month plot
     sns.barplot(x=time_analysis['flights_per_month'].index, 
                 y=time_analysis['flights_per_month'].values, 
-                palette='plasma', ax=ax2)
+                palette='coolwarm', ax=ax2)
     ax2.set_title("Flights by Month")
     ax2.set_xlabel("Month")
     ax2.set_ylabel("Number of Flights")
     
     plt.tight_layout()
+    plt.savefig('outputs/flights_by_dow.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 def visualize_flights_by_airport(airport_analysis):
@@ -39,6 +58,7 @@ def visualize_flights_by_airport(airport_analysis):
     plt.ylabel("Number of Flights")
     plt.xticks(rotation=45)
     plt.tight_layout()
+    plt.savefig('outputs/flights_by_airport.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 def visualize_cancellations(cancellation_analysis):
@@ -65,6 +85,7 @@ def visualize_cancellations(cancellation_analysis):
         ax2.tick_params(axis='x', rotation=45)
     
     plt.tight_layout()
+    plt.savefig('outputs/cancellation_analysis.png', dpi=150, bbox_inches='tight')
     plt.show()
 
 def visualize_flight_duration_distance(duration_analysis):
@@ -77,6 +98,7 @@ def visualize_flight_duration_distance(duration_analysis):
     plt.xlabel("Metrics")
     plt.ylabel("Statistics")
     plt.tight_layout()
+    plt.savefig('outputs/duration_distance_heatmap.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 def visualize_delays(delay_analysis):
@@ -89,6 +111,7 @@ def visualize_delays(delay_analysis):
     plt.xlabel("Delay Types")
     plt.ylabel("Statistics")
     plt.tight_layout()
+    plt.savefig('outputs/delay_heatmap.png', dpi=150, bbox_inches='tight')
     plt.show()
 
 def visualize_airport_performance(airport_performance):
@@ -139,6 +162,7 @@ def visualize_monthly_delays(monthly_delays):
     plt.legend(['Weather Delay', 'Late Aircraft Delay'])
     plt.xticks(rotation=0)
     plt.tight_layout()
+    plt.savefig('outputs/monthly_delays_comparison.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 def visualize_complete_analysis(analysis_results):
